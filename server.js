@@ -28,7 +28,9 @@ const checkDupe = data => {
     const file = fs.readFileSync('records.txt', {encoding:'utf8', flag:'r'});
 
     for (let line of file.split('\n')) {
-        if (line === data) {
+        line = line.split(';');
+
+        if (line[0] === data[0] && line[1] === data[1] && line[4] === data[4]) {
             return true;
         }
     }
@@ -37,18 +39,18 @@ const checkDupe = data => {
 };
 
 app.post('/', (req, res) => {
-    const data = req.body.data.map(item => (item.trim(' '))).join(';');
-    console.log('hehe')
+    const data = req.body.data.map(item => (item.trim(' ')));
+
     if (checkDupe(data)) {
         return res.send({
             dupe: true,
         })
     }
     
-    fs.appendFile('records.txt', data + '\n', () => {});
+    fs.appendFile('records.txt', data.join(';') + '\n', () => {});
 
     try {
-        sIO.emit('update', data);
+        sIO.emit('update', data.join(';'));
     }
     catch {
         console.log('cannot emit data');
@@ -61,8 +63,7 @@ app.post('/', (req, res) => {
 
 app.post('/checkData', (req, res) => {
     const data = req.body.data.map(item => (item.trim(' ')));
-    
-    if (checkDupe(data.join(';'))) {
+    if (checkDupe(data)) {
         return res.send({
             dupe: true,
         })
